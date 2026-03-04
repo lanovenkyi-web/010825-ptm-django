@@ -1,8 +1,49 @@
 from datetime import datetime
 from decimal import Decimal
 
+from django.contrib.auth.base_user import AbstractBaseUser
+# from django.contrib.auth.models import User
+from django.contrib.auth.models import PermissionsMixin, UserManager
 from django.db import models
 from django.core.validators import MinLengthValidator
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    class Role(models.TextChoices):
+        admin = "admin", "Admin"
+        moderator = "moderator", "Moderator"
+        lib_member = "lib_member", "Library Member"
+
+    class Gender(models.TextChoices):
+        male = "male", "Male"
+        female = "female", "Female"
+        other = "other", "Other"
+
+    username = models.CharField(max_length=30, unique=True)
+    email = models.EmailField(max_length=80, unique=True)
+    first_name = models.CharField(max_length=30, null=True, blank=True)
+    last_name = models.CharField(max_length=30, null=True, blank=True)
+    phone = models.CharField(max_length=25, null=True, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    role = models.CharField(max_length=15, choices=Role)
+    gender = models.CharField(max_length=10, choices=Gender)
+    age = models.PositiveSmallIntegerField(null=True, blank=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    date_joined = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    objects = UserManager()
+
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email", "role", "gender"]
+
+    def __str__(self):
+        return self.email
+
+    class Meta:
+        db_table = "users"
 
 
 class Book(models.Model):  # table name like <app_name>_<model_name>
@@ -55,6 +96,40 @@ class Book(models.Model):  # table name like <app_name>_<model_name>
     )
     # isbn: str = models.SlugField()
 
+    def __str__(self):
+        # return self.title
+        return f"{self.title} ({self.published_date})   --- {self.id}"
+
+    # def __str__(self):
+    #     return str(self)
+
+
+    class Meta:
+        db_table = "books"  # своё имя таблицы в БД
+
+        verbose_name = "Book"  # человекочитабельное название класса (ед. число)
+        verbose_name_plural = "Books"  # человекочитабельное название класса (множ. число)
+        ordering = ["-published_date", "title"]  # desc
+        # ordering = ["published_date",]  # asc
+
+        indexes = [
+            models.Index(
+                fields=["title", "category"],
+                name="book_title_category_idx"
+            )
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["title", "category"],
+                name="book_title_category_unq_cst"
+            )
+        ]
+
+        # abstract = True
+        # default_related_name = "books"
+
+        get_latest_by = "-published_date"
 
 
 class Post(models.Model):
@@ -84,6 +159,15 @@ class Post(models.Model):
         auto_now_add=True
     )
 
+    def __str__(self):
+        author = self.author.username if self.author else "Unknown author"
+
+        return f"{self.title} Publisher: ({author})"
+
+    class Meta:
+        db_table = "posts"
+        ordering = ["-created_at"]
+
 
 # Post.author -> -> Author obj.
 # Author.posts -> ->  [Post obj, ... Post obj]
@@ -104,6 +188,13 @@ class Author(models.Model):
         blank=True
     )
 
+    def __str__(self):
+        return self.username
+
+    class Meta:
+        db_table = "authors"
+        ordering = ["username",]
+
 
 class AuthorProfile(models.Model):
     about: str = models.TextField(
@@ -123,3 +214,12 @@ class AuthorProfile(models.Model):
         on_delete=models.CASCADE,
         related_name='profile'
     )
+
+    def __str__(self):
+        # Сперва система получает все данные (SELECT * FROM '<AuthorProfile>')
+
+        # При обращении к author.username, система пойдёт на +1 запрос (SELECT * FROM '<Author> WHERE id = <%s>')
+        return self.author.username
+
+    class Meta:
+        db_table = "author_profiles"
