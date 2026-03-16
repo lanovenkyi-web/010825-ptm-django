@@ -4,7 +4,7 @@ from decimal import Decimal
 from pprint import pformat
 
 import django
-
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library.settings')
 django.setup()
@@ -354,3 +354,54 @@ from my_app.models import Book
 # one_book = Book.objects.get(id=281)
 #
 # one_book.delete()
+
+# CREATE
+# Book.objects.create()
+#
+# book = Book(...)
+# book.save()
+
+# READ
+# .get() - получить один обхъект (!!!!!!! ObjectDoesNotExist | MultipleObjectsReturned !!!!!!!!!!!)
+# .all() - получить все объекты
+# .filter() - получить все объекты по фильтр условию
+# .exclude() - ИСКЛЮЧИТЬ все объекты по фильтр условию
+# .first() - получить первый элемент из кверисета
+# .last() - получить последний элемент из кверисета
+# .count() - получить количество элементов в кверисете
+# .exists() - проверить наличие элементов в кверисете
+# .order_by() - задаёт сортировку кверисету
+
+
+# QuerySet
+
+
+from my_app.models import Author
+
+
+# filter_authors = Author.objects.filter(username="qweqweqweqweqweqwe")  # SELECT * FROM 'authors'
+# all_authors = Author.objects.all()
+# exclude_authors = Author.objects.exclude(username="qwerty")
+#
+#
+# # sorted_authors = all_authors.order_by()
+#
+# print(type(filter_authors))
+# print(type(all_authors))
+# print(type(exclude_authors))
+
+
+from django.db.models import Q
+
+# SQL       Django
+# OR       Q() | Q()
+# AND      Q() & Q()
+# NOT      ~Q() | ~Q()
+
+books = Book.objects.filter(
+    Q(Q(category__iexact='fantasy') | ~Q(is_bestseller=True)) & Q(published_date__year__gt=2017)
+)
+
+
+print(books.query)
+print(books)
