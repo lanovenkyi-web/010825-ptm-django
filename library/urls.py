@@ -18,19 +18,13 @@ from django.contrib import admin
 from django.urls import path
 
 from my_app.views import (
-    get_all_books,
-    get_book_by_id,
-    create_new_book,
-    update_book,
-    delete_book
+    list_create_books,
+    retrieve_update_destroy_book,
 )
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('books/', get_all_books),
-    path('books/create/', create_new_book),
-    path('books/<int:pk>', get_book_by_id),
-    path('books/<int:pk>/update/', update_book),
-    path('books/<int:pk>/delete/', delete_book),
+    path('books/', list_create_books),
+    path('books/<int:pk>', retrieve_update_destroy_book),
 ]
