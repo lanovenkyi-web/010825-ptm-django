@@ -66,12 +66,16 @@ MIDDLEWARE = [
     'my_app.middlewares.JWTMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'my_app.middlewares.TestMiddleware',
+    # 'my_app.middlewares.TestMiddleware',
 ]
 
 ROOT_URLCONF = 'library.urls'
 # AUTH_USER_MODEL = '<app_name>.<model_name>'
 AUTH_USER_MODEL = 'my_app.User'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 TEMPLATES = [
     {

@@ -2,17 +2,44 @@ from urllib.request import Request
 
 from django.db.models import Count
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from my_app.models import User
-from my_app.serializers import UserListSerializer, UserDetailSerializer
+from my_app.permissions import IsAdminOnly, CreateActionPermanentBlocked
+from my_app.serializers import UserListSerializer, UserDetailSerializer, PromoteModeratorSerializer
 from my_app.serializers.user import UserLoginSerializer, RegisterUserSerializer
 from my_app.utils import set_jwt_cookies, REFRESH_COOKIE_NAME, clear_jwt_cookies
+
+
+
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    permission_classes = [IsAuthenticated, IsAdminOnly, CreateActionPermanentBlocked]
+
+    def get_serializer_class(self):
+        if self.action == 'promote_to_moderator':
+            return PromoteModeratorSerializer
+        elif self.action == 'list':
+            return UserListSerializer
+        return UserDetailSerializer
+
+    @action(detail=True, methods=['patch'], url_path='promote-to-moderator')
+    def promote_to_moderator(self, request: Request, *args, **kwargs) -> Response:
+        user = self.get_object()
+        serializer = self.get_serializer(instance=user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=user)
+        return Response(
+            status=status.HTTP_200_OK
+        )
+
 
 
 class LoginUser(APIView):

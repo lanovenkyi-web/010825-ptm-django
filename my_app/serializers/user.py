@@ -226,3 +226,21 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'is_active',
             'date_joined',
         ]
+
+
+class PromoteModeratorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['is_staff', 'role']
+
+        extra_kwargs = {
+            'is_staff': {'required': True},
+            'role': {'required': True},
+        }
+
+    def validate_role(self, value: str) -> str:
+        if value not in User.Role:
+            raise serializers.ValidationError(
+                f"Invalid role choice: {value}"
+            )
+        return value

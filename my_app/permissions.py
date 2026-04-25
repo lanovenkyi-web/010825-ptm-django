@@ -25,3 +25,19 @@ class IsAdmin(BasePermission):
 
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_superuser)
+
+
+class IsAdminOnly(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.user
+            and request.user.is_authenticated
+            and request.user.is_superuser
+        )
+
+
+class CreateActionPermanentBlocked(BasePermission):
+    def has_permission(self, request, view):
+        if view.action == 'create':
+            return False
+        return True
