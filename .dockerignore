@@ -1,12 +1,13 @@
-.venv
-venv
+**
 
-.idea
-.vscode
+!Dockerfile
+!requirements.txt
+!manage.py
+!paginators.py
 
-.env
-
-db.sqlite3
-*.db
-
-__pycache__
+!library/
+!library/**
+!my_app/
+!my_app/**
+!templates/
+!templates/**

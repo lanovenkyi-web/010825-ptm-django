@@ -26,7 +26,7 @@ from my_app.serializers import AuthorDetailSerializer, AuthorListSerializer
 
 
 class AuthorsViewSet(ModelViewSet):
-    queryset = Author.objects.all().prefetch_related('books')
+    queryset = Author.objects.prefetch_related('books')
     # permission_classes = [AllowAny]
     # permission_classes = [IsAuthenticatedOrReadOnly]
     permission_classes = [DjangoModelPermissions, IsStaffAndAdmin]
